@@ -2,11 +2,11 @@ import glob
 import random
 import os
 
-from torch.utils.data import Dataset
-from PIL import Image
-import torchvision.transforms as transforms
+from torch.utils.data import Dataset # Dataset class from PyTorch
+from PIL import Image # PIL is a nice Python Image Library that we can use to handle images
+import torchvision.transforms as transforms # torch transform used for computer vision applications
 
-
+# convert the image to RGB in case it has only one channel
 def to_rgb(image):
     rgb_image = Image.new("RGB", image.size)
     rgb_image.paste(image)
@@ -15,16 +15,22 @@ def to_rgb(image):
 
 class ImageDataset(Dataset):
     def __init__(self, root, transforms_=None, unaligned=False, mode="train"):
-        self.transform = transforms.Compose(transforms_)
+        # mode "train" during learning / training and "test" during testing
+        # we will have two folders; one called train and the other test; hence, we load the images according to whay we are doing (train or test?)
+        # root is the folder that contains the data
+        # transform_ is an actual parameter that contains some transform that we can apply on each image, for example, rotation, translation, scaling, etc
+        # if the source and target are aligned, this is supervised learning, otherwise it is unsupervised learning
+        # Yes, amazingly, CycleGan can learn well even if the source and target images are unaligned (ie umpaired)
+        self.transform = transforms.Compose(transforms_) # image transform
         self.unaligned = unaligned
 
-        self.files_A = sorted(glob.glob(os.path.join(root, "%s/A" % mode) + "/*.*"))
-        self.files_B = sorted(glob.glob(os.path.join(root, "%s/B" % mode) + "/*.*"))
+        self.files_A = sorted(glob.glob(os.path.join(root, "%s/A" % mode) + "/*.*")) # get the source image file-names
+        self.files_B = sorted(glob.glob(os.path.join(root, "%s/B" % mode) + "/*.*")) # get the target image file-names
 
     def __getitem__(self, index):
-        image_A = Image.open(self.files_A[index % len(self.files_A)])
+        image_A = Image.open(self.files_A[index % len(self.files_A)]) # read the image, according to the file name, index select which image to read; index=1 means get the first image in the list self.files_A
 
-        if self.unaligned:
+        if self.unaligned: 
             image_B = Image.open(self.files_B[random.randint(0, len(self.files_B) - 1)])
         else:
             image_B = Image.open(self.files_B[index % len(self.files_B)])
@@ -35,9 +41,10 @@ class ImageDataset(Dataset):
         if image_B.mode != "RGB":
             image_B = to_rgb(image_B)
 
-        item_A = self.transform(image_A)
-        item_B = self.transform(image_B)
-        return {"A": item_A, "B": item_B}
+        item_A = self.transform(image_A) # here we apply the transform on the source
+        item_B = self.transform(image_B) # apply the transform on the target (in our case, the target is the pixel-wise annotation that marks the garments)
+        return {"A": item_A, "B": item_B} # we are returning both the source and the target
 
-    def __len__(self):
+    def __len__(self): # this function returns the length of the dataset, the source might not equal the target if the data is unaligned
         return max(len(self.files_A), len(self.files_B))
+# NB. Done on the fly, have not therefore checked it for spelling mistakes
