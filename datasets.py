@@ -59,6 +59,6 @@ x_data = ImageDataset("./data/%s" % "train_folder",
                            data_mode = "train",                           
                            )
 
-x_data[0]  #accessing the first element in the data, should have the first image and its corresponding pixel-levele annotation
-img = x_data[0]['A']  # getting the image
-anno = x_data[0]['B']  # getting the annotation
+# x_data[0]  #accessing the first element in the data, should have the first image and its corresponding pixel-levele annotation
+# img = x_data[0]['A']  # getting the image
+# anno = x_data[0]['B']  # getting the annotation
