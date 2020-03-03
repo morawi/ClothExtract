@@ -1,6 +1,7 @@
 import glob
 import random
 import os
+import scipy.io as sio
 
 from torch.utils.data import Dataset # Dataset class from PyTorch
 from PIL import Image # PIL is a nice Python Image Library that we can use to handle images
@@ -30,10 +31,12 @@ class ImageDataset(Dataset):
     def __getitem__(self, index):
         image_A = Image.open(self.files_A[index % len(self.files_A)]) # read the image, according to the file name, index select which image to read; index=1 means get the first image in the list self.files_A
 
-        if self.unaligned: 
-            image_B = Image.open(self.files_B[random.randint(0, len(self.files_B) - 1)])
+        if self.unaligned:
+            annot = sio.loadmat(self.files_B[random.randint(0, len(self.files_B) - 1)])
+            image_B = Image.fromarray(annot["groundtruth"])
         else:
-            image_B = Image.open(self.files_B[index % len(self.files_B)])
+            annot = sio.loadmat(self.files_B[index % len(self.files_B)])
+            image_B = Image.fromarray(annot["groundtruth"])
 
         # Convert grayscale images to rgb
         if image_A.mode != "RGB":
@@ -49,16 +52,18 @@ class ImageDataset(Dataset):
         return max(len(self.files_A), len(self.files_B))
 # NB. Done on the fly, have not therefore checked it for spelling mistakes
 
-
 ''' here data folder is one level behind the code folder, as we want to separate the code from data
 inside data folder there is train_folder 
 should have two sub-folders, A (contains the images) and B (containes the annotations) '''
 x_data = ImageDataset("./data/%s" % "train_folder",  
-                           transform=None,                            
-                           aligned=True, 
-                           data_mode = "train",                           
+                           transforms_='',                            
+                           unaligned=False, 
+                           mode = "train",                           
                            )
 
-# x_data[0]  #accessing the first element in the data, should have the first image and its corresponding pixel-levele annotation
-# img = x_data[0]['A']  # getting the image
-# anno = x_data[0]['B']  # getting the annotation
+x_data[0]  #accessing the first element in the data, should have the first image and its corresponding pixel-levele annotation
+img = x_data[0]['A']  # getting the image
+anno = x_data[0]['B']  # getting the annotation
+
+img.show()
+anno.show()
