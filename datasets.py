@@ -7,11 +7,19 @@ from torch.utils.data import Dataset # Dataset class from PyTorch
 from PIL import Image # PIL is a nice Python Image Library that we can use to handle images
 import torchvision.transforms as transforms # torch transform used for computer vision applications
 
+import matplotlib.pyplot as plt
+
+
+
+
+
 # convert the image to RGB in case it has only one channel
 def to_rgb(image):
     rgb_image = Image.new("RGB", image.size)
     rgb_image.paste(image)
     return rgb_image
+
+
 
 
 class ImageDataset(Dataset):
@@ -38,7 +46,7 @@ class ImageDataset(Dataset):
             annot = sio.loadmat(self.files_B[index % len(self.files_B)])
             image_B = Image.fromarray(annot["groundtruth"])
 
-        # Convert grayscale images to rgb
+#        Convert grayscale images to rgb
         if image_A.mode != "RGB":
             image_A = to_rgb(image_A)
         if image_B.mode != "RGB":
@@ -55,7 +63,8 @@ class ImageDataset(Dataset):
 ''' here data folder is one level behind the code folder, as we want to separate the code from data
 inside data folder there is train_folder 
 should have two sub-folders, A (contains the images) and B (containes the annotations) '''
-x_data = ImageDataset("./data/%s" % "train_folder",  
+
+x_data = ImageDataset("../data/%s" % "ClothCoParse",  
                            transforms_='',                            
                            unaligned=False, 
                            mode = "train",                           
@@ -65,5 +74,7 @@ x_data[0]  #accessing the first element in the data, should have the first image
 img = x_data[0]['A']  # getting the image
 anno = x_data[0]['B']  # getting the annotation
 
-img.show()
-anno.show()
+
+plt.imshow(anno.convert('L'),  cmap= plt.cm.get_cmap("gist_stern"), vmin=0, vmax=255)
+
+
