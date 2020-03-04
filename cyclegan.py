@@ -20,6 +20,8 @@ from utils import *
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
+import platform
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--epoch", type=int, default=0, help="epoch to start training from")
@@ -41,6 +43,10 @@ parser.add_argument("--lambda_cyc", type=float, default=10.0, help="cycle loss w
 parser.add_argument("--lambda_id", type=float, default=5.0, help="identity loss weight")
 opt = parser.parse_args()
 opt.dataset_name = 'ClothCoParse'
+
+if platform.system()=='Windows':
+    opt.n_cpu=0
+
 print(opt)
 
 # Create sample and checkpoint directories
@@ -123,7 +129,7 @@ dataloader = DataLoader(
     ImageDataset("../data/%s" % opt.dataset_name, transforms_=transforms_, unaligned=True),
     batch_size=opt.batch_size,
     shuffle=True,
-    num_workers= 0 # opt.n_cpu,
+    num_workers= opt.n_cpu,
  
 )
 
