@@ -30,7 +30,11 @@ class ImageDataset(Dataset):
         # transform_ is an actual parameter that contains some transform that we can apply on each image, for example, rotation, translation, scaling, etc
         # if the source and target are aligned, this is supervised learning, otherwise it is unsupervised learning
         # Yes, amazingly, CycleGan can learn well even if the source and target images are unaligned (ie umpaired)
-        self.transform = transforms.Compose(transforms_) # image transform
+        if transforms_ != None:
+            self.transform = transforms.Compose(transforms_) # image transform
+        else:
+            self.transform=None
+            
         self.unaligned = unaligned
 
         self.files_A = sorted(glob.glob(os.path.join(root, "%s/A" % mode) + "/*.*")) # get the source image file-names
@@ -51,10 +55,10 @@ class ImageDataset(Dataset):
             image_A = to_rgb(image_A)
         if image_B.mode != "RGB":
             image_B = to_rgb(image_B)
-
-        item_A = self.transform(image_A) # here we apply the transform on the source
-        item_B = self.transform(image_B) # apply the transform on the target (in our case, the target is the pixel-wise annotation that marks the garments)
-        return {"A": item_A, "B": item_B} # we are returning both the source and the target
+        if self.transform !=None:
+            image_A = self.transform(image_A) # here we apply the transform on the source
+            image_B = self.transform(image_B) # apply the transform on the target (in our case, the target is the pixel-wise annotation that marks the garments)
+        return {"A": image_A, "B": image_B} # we are returning both the source and the target
 
     def __len__(self): # this function returns the length of the dataset, the source might not equal the target if the data is unaligned
         return max(len(self.files_A), len(self.files_B))
@@ -70,11 +74,11 @@ x_data = ImageDataset("../data/%s" % "ClothCoParse",
                            mode = "train",                           
                            )
 
-x_data[0]  #accessing the first element in the data, should have the first image and its corresponding pixel-levele annotation
-img = x_data[0]['A']  # getting the image
-anno = x_data[0]['B']  # getting the annotation
+# x_data[0]  #accessing the first element in the data, should have the first image and its corresponding pixel-levele annotation
+# img = x_data[0]['A']  # getting the image
+# anno = x_data[0]['B']  # getting the annotation
 
 
-plt.imshow(anno.convert('L'),  cmap= plt.cm.get_cmap("gist_stern"), vmin=0, vmax=255)
+# plt.imshow(anno.convert('L'),  cmap= plt.cm.get_cmap("gist_stern"), vmin=0, vmax=255)
 
 
