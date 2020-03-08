@@ -41,8 +41,11 @@ parser.add_argument("--checkpoint_interval", type=int, default=-1, help="interva
 parser.add_argument("--n_residual_blocks", type=int, default=9, help="number of residual blocks in generator")
 parser.add_argument("--lambda_cyc", type=float, default=10.0, help="cycle loss weight")
 parser.add_argument("--lambda_id", type=float, default=5.0, help="identity loss weight")
+
+
 opt = parser.parse_args()
 opt.dataset_name = 'ClothCoParse'
+opt.checkpoint_interval=4
 
 if platform.system()=='Windows':
     opt.n_cpu=0
