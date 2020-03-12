@@ -27,7 +27,6 @@ dataset_name = 'ClothCoParse'
 using_test_data = True
 batch_test_size = 1 
 channels = 3 
-
 n_cpu = 0
 input_shape = (channels, 0) # added 0 to resolve a problem
 
@@ -69,8 +68,12 @@ PIL_A_img = data_set[img_id]['A']
 PIL_B_img = data_set[img_id]['B']
 real_A = transforms_val(PIL_A_img)  # tensor image
 cuda = True if torch.cuda.is_available() else False
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+cuda = False
+device = torch.device('cuda' if cuda else 'cpu')
 G_AB = get_GAN_AB_model(path2model, model_name, cuda=cuda)
+if not cuda:
+    G_AB=G_AB.cpu()
+
 if cuda: real_A = real_A.to(device)
 with torch.no_grad():                                    
     B_gan = G_AB(real_A.unsqueeze(0))   
