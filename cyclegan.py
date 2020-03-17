@@ -26,7 +26,7 @@ import platform
 parser = argparse.ArgumentParser()
 parser.add_argument("--epoch", type=int, default=0, help="epoch to start training from")
 parser.add_argument("--n_epochs", type=int, default=200, help="number of epochs of training")
-parser.add_argument("--dataset_name", type=str, default="monet2photo", help="name of the dataset")
+parser.add_argument("--dataset_name", type=str, default="ClothCoParse", help="name of the dataset")
 parser.add_argument("--batch_size", type=int, default=1, help="size of the batches")
 parser.add_argument("--lr", type=float, default=0.0002, help="adam: learning rate")
 parser.add_argument("--b1", type=float, default=0.5, help="adam: decay of first order momentum of gradient")
@@ -44,8 +44,6 @@ parser.add_argument("--lambda_id", type=float, default=5.0, help="identity loss 
 
 
 opt = parser.parse_args()
-opt.dataset_name = 'ClothCoParse'
-opt.checkpoint_interval=4
 
 if platform.system()=='Windows':
     opt.n_cpu=0

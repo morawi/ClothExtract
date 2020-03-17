@@ -36,9 +36,11 @@ class ImageDataset(Dataset):
             self.transform=None
             
         self.unaligned = unaligned
+        # root = '/home/malrawi/MyPrograms/Data/ClothCoParse'
 
         self.files_A = sorted(glob.glob(os.path.join(root, "%s/A" % mode) + "/*.*")) # get the source image file-names
         self.files_B = sorted(glob.glob(os.path.join(root, "%s/B" % mode) + "/*.*")) # get the target image file-names
+        
 
     def __getitem__(self, index):
         image_A = Image.open(self.files_A[index % len(self.files_A)]) # read the image, according to the file name, index select which image to read; index=1 means get the first image in the list self.files_A
@@ -61,7 +63,7 @@ class ImageDataset(Dataset):
         return {"A": image_A, "B": image_B} # we are returning both the source and the target
 
     def __len__(self): # this function returns the length of the dataset, the source might not equal the target if the data is unaligned
-        return max(len(self.files_A), len(self.files_B))
+        return len(self.files_B)
 # NB. Done on the fly, have not therefore checked it for spelling mistakes
 
 ''' here data folder is one level behind the code folder, as we want to separate the code from data
