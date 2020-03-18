@@ -23,10 +23,11 @@ def to_rgb(image):
 
 
 class ImageDataset(Dataset):
-    def __init__(self, root, transforms_=None, unaligned=False, mode="train"):
+    def __init__(self, root, transforms_=None, unaligned=False, mode="train",
+                 Convert_B2_mask=False, HPC_run=True):
         # mode "train" during learning / training and "test" during testing
         # we will have two folders; one called train and the other test; hence, we load the images according to whay we are doing (train or test?)
-        # root is the folder that contains the data
+        # root is the path to the folder that contains the data
         # transform_ is an actual parameter that contains some transform that we can apply on each image, for example, rotation, translation, scaling, etc
         # if the source and target are aligned, this is supervised learning, otherwise it is unsupervised learning
         # Yes, amazingly, CycleGan can learn well even if the source and target images are unaligned (ie umpaired)
@@ -35,8 +36,10 @@ class ImageDataset(Dataset):
         else:
             self.transform=None
             
+        self.Convert_B2_mask=Convert_B2_mask
         self.unaligned = unaligned
-        # root = '/home/malrawi/MyPrograms/Data/ClothCoParse'
+        if HPC_run:
+            root = '/home/malrawi/MyPrograms/Data/ClothCoParse'
 
         self.files_A = sorted(glob.glob(os.path.join(root, "%s/A" % mode) + "/*.*")) # get the source image file-names
         self.files_B = sorted(glob.glob(os.path.join(root, "%s/B" % mode) + "/*.*")) # get the target image file-names
@@ -51,7 +54,9 @@ class ImageDataset(Dataset):
         else:
             annot = sio.loadmat(self.files_B[index % len(self.files_B)])
             image_B = Image.fromarray(annot["groundtruth"])
-
+        if self.Convert_B2_mask:
+            image_B = image_B.point(lambda p: 255 if p > 0  else 0 )
+        
 #        Convert grayscale images to rgb
         if image_A.mode != "RGB":
             image_A = to_rgb(image_A)
