@@ -40,19 +40,32 @@ parser.add_argument(
     "--sample_interval", type=int, default=100, help="interval between sampling of images from generators"
 )
 parser.add_argument("--checkpoint_interval", type=int, default=10, help="interval between model checkpoints")
+parser.add_argument("--HPC_run", type=bool, default=False, help="set to true if running on HPC")
+parser.add_argument("--Convert_B2_mask", type=bool, default=False, help="set to convert the annotation to a mask")
+parser.add_argument("--redirect_std_to_file", type=bool, default=True, help="set all console output to file")
+
+
 opt = parser.parse_args()
+
+# opt.Convert_B2_mask=True
 
 if platform.system()=='Windows':
     opt.n_cpu=0
 
 
 dt = datetime.datetime.today()
-opt.experiment_name = opt.dataset_name+"-pix2pix-"+calendar.month_abbr[dt.month]+"-"+str(dt.day)
-
-print(opt)
+opt.experiment_name = opt.dataset_name+"-pix2pix-"+calendar.month_abbr[dt.month]+"-"+str(dt.day)+'-at-'+str(dt.hour) +'-'+str(dt.minute)
 
 os.makedirs("images/%s" % opt.experiment_name, exist_ok=True)
 os.makedirs("saved_models/%s" % opt.experiment_name, exist_ok=True)
+
+
+if  opt.redirect_std_to_file:    
+    out_file_name = opt.experiment_name
+    print('Output sent to ', out_file_name)
+    sys.stdout = open(out_file_name+'.txt',  'w')
+
+print(opt)
 
 cuda = True if torch.cuda.is_available() else False
 
@@ -99,10 +112,11 @@ transforms_ = [
 # Image transformations
 
 dataloader = DataLoader(
-    ImageDataset("../data/%s" % opt.dataset_name, transforms_=transforms_, unaligned=True),
+    ImageDataset("../data/%s" % opt.dataset_name, transforms_=transforms_, mode="train", unaligned=False, 
+                 HPC_run=opt.HPC_run, Convert_B2_mask = opt.Convert_B2_mask),
     batch_size=opt.batch_size,
     shuffle=True,
-    num_workers= opt.n_cpu,
+    num_workers = opt.n_cpu,
  
 )
 
@@ -110,8 +124,9 @@ dataloader = DataLoader(
 
 '''test is same as train for now'''
 val_dataloader = DataLoader(
-    ImageDataset("../data/%s" % opt.dataset_name, transforms_=transforms_, mode="train"),
-    batch_size=1,
+    ImageDataset("../data/%s" % opt.dataset_name, transforms_=transforms_, mode="train", unaligned=False, 
+                 HPC_run=opt.HPC_run, Convert_B2_mask = opt.Convert_B2_mask),
+    batch_size=5,
     shuffle=True,
     num_workers=0,
 )
