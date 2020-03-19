@@ -131,7 +131,7 @@ transforms_ = [
 # Training data loader
 dataloader = DataLoader(
     ImageDataset("../data/%s" % opt.dataset_name, transforms_=transforms_, 
-                 unaligned=True
+                 unaligned=True,
                  HPC_run=opt.HPC_run, 
                  Convert_B2_mask = opt.Convert_B2_mask
                  ),
