@@ -41,6 +41,9 @@ parser.add_argument("--checkpoint_interval", type=int, default=-1, help="interva
 parser.add_argument("--n_residual_blocks", type=int, default=9, help="number of residual blocks in generator")
 parser.add_argument("--lambda_cyc", type=float, default=10.0, help="cycle loss weight")
 parser.add_argument("--lambda_id", type=float, default=5.0, help="identity loss weight")
+parser.add_argument("--HPC_run", type=bool, default=False, help="set to true if running on HPC")
+parser.add_argument("--Convert_B2_mask", type=bool, default=False, help="set to convert the annotation to a mask")
+parser.add_argument("--redirect_std_to_file", type=bool, default=False, help="set all console output to file")
 
 
 opt = parser.parse_args()
@@ -127,7 +130,11 @@ transforms_ = [
 
 # Training data loader
 dataloader = DataLoader(
-    ImageDataset("../data/%s" % opt.dataset_name, transforms_=transforms_, unaligned=True),
+    ImageDataset("../data/%s" % opt.dataset_name, transforms_=transforms_, 
+                 unaligned=True
+                 HPC_run=opt.HPC_run, 
+                 Convert_B2_mask = opt.Convert_B2_mask
+                 ),
     batch_size=opt.batch_size,
     shuffle=True,
     num_workers= opt.n_cpu,
@@ -139,7 +146,10 @@ dataloader = DataLoader(
 
 # Test data loader
 val_dataloader = DataLoader(
-    ImageDataset("../data/%s" % opt.dataset_name, transforms_=transforms_, unaligned=True, mode="train"),
+    ImageDataset("../data/%s" % opt.dataset_name, transforms_=transforms_, 
+                 unaligned=True, mode="train",
+                 HPC_run=opt.HPC_run, 
+                 Convert_B2_mask = opt.Convert_B2_mask),
     batch_size=5,
     shuffle=True,
     num_workers=0,
