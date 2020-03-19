@@ -23,7 +23,9 @@ import torch.nn.functional as F
 import torch
 import platform
 
+
 parser = argparse.ArgumentParser()
+
 parser.add_argument("--epoch", type=int, default=0, help="epoch to start training from")
 parser.add_argument("--n_epochs", type=int, default=200, help="number of epochs of training")
 parser.add_argument("--dataset_name", type=str, default="ClothCoParse", help="name of the dataset")
@@ -33,21 +35,17 @@ parser.add_argument("--b1", type=float, default=0.5, help="adam: decay of first 
 parser.add_argument("--b2", type=float, default=0.999, help="adam: decay of first order momentum of gradient")
 parser.add_argument("--decay_epoch", type=int, default=100, help="epoch from which to start lr decay")
 parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation")
-parser.add_argument("--img_height", type=int, default=256, help="size of image height")
-parser.add_argument("--img_width", type=int, default=256, help="size of image width")
+parser.add_argument("--img_height", type=int, default=512, help="size of image height")
+parser.add_argument("--img_width", type= int, default=512, help="size of image width")
 parser.add_argument("--channels", type=int, default=3, help="number of image channels")
-parser.add_argument(
-    "--sample_interval", type=int, default=100, help="interval between sampling of images from generators"
-)
+parser.add_argument("--sample_interval", type=int, default=100, help="interval between sampling of images from generators")
 parser.add_argument("--checkpoint_interval", type=int, default=10, help="interval between model checkpoints")
 parser.add_argument("--HPC_run", type=bool, default=False, help="set to true if running on HPC")
 parser.add_argument("--Convert_B2_mask", type=bool, default=False, help="set to convert the annotation to a mask")
-parser.add_argument("--redirect_std_to_file", type=bool, default=True, help="set all console output to file")
+parser.add_argument("--redirect_std_to_file", type=bool, default=False, help="set all console output to file")
 
 
 opt = parser.parse_args()
-
-# opt.Convert_B2_mask=True
 
 if platform.system()=='Windows':
     opt.n_cpu=0
@@ -111,9 +109,12 @@ transforms_ = [
 
 # Image transformations
 
+x_data= ImageDataset("../data/%s" % opt.dataset_name, transforms_=transforms_, mode="train", unaligned=False, 
+                 HPC_run=opt.HPC_run, Convert_B2_mask = opt.Convert_B2_mask)
+aa = x_data[0]
+
 dataloader = DataLoader(
-    ImageDataset("../data/%s" % opt.dataset_name, transforms_=transforms_, mode="train", unaligned=False, 
-                 HPC_run=opt.HPC_run, Convert_B2_mask = opt.Convert_B2_mask),
+    x_data,
     batch_size=opt.batch_size,
     shuffle=True,
     num_workers = opt.n_cpu,
@@ -154,9 +155,15 @@ prev_time = time.time()
 for epoch in range(opt.epoch, opt.n_epochs):
     for i, batch in enumerate(dataloader):
 
-        # Model inputs
+        # Model inputs ... Original ... input is the conditino/mask, to generate A
+        # real_A = Variable(batch["B"].type(Tensor))
+        # real_B = Variable(batch["A"].type(Tensor))
+        
+        # Changed by Rawi .... Input is A to produce B, the mask
         real_A = Variable(batch["B"].type(Tensor))
         real_B = Variable(batch["A"].type(Tensor))
+        
+       
 
         # Adversarial ground truths
         valid = Variable(Tensor(np.ones((real_A.size(0), *patch))), requires_grad=False)
