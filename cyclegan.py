@@ -41,13 +41,19 @@ parser.add_argument("--checkpoint_interval", type=int, default=-1, help="interva
 parser.add_argument("--n_residual_blocks", type=int, default=9, help="number of residual blocks in generator")
 parser.add_argument("--lambda_cyc", type=float, default=10.0, help="cycle loss weight")
 parser.add_argument("--lambda_id", type=float, default=5.0, help="identity loss weight")
-parser.add_argument("--HPC_run", type=bool, choices=('True','False'), help="set to true if running on HPC: default is None which reads to False")
-parser.add_argument("--Convert_B2_mask", choices=('True','False'), help="convert the annotation to a binary mask: default is None which reads to False")
-parser.add_argument("--redirect_std_to_file", choices=('True','False'), help="set all console output to file: default is None which reads to False")
+parser.add_argument("--HPC_run", type=int, default=0, help="if 1, sets to true if running on HPC: default is 0 which reads to False")
+parser.add_argument("--Convert_B2_mask", type=int, default=0, help="convert the annotation to a binary mask: default is 0 which reads to False")
+parser.add_argument("--redirect_std_to_file", type =int, default=0, help="set all console output to file: default is 0 which reads to False")
 
 
 
 opt = parser.parse_args()
+
+# these args are 0s, so, let's convert them to bool (bool does not work directly on parser!)
+opt.Convert_B2_mask= bool(opt.Convert_B2_mask)
+opt.HPC_run=bool(opt.HPC_run)
+redirect_std_to_file = bool(opt.redirect_std_to_file)
+
 
 if platform.system()=='Windows':
     opt.n_cpu=0
