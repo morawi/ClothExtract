@@ -25,7 +25,7 @@ import platform
 
 
 parser = argparse.ArgumentParser()
-
+# parser.set_defaults()
 parser.add_argument("--epoch", type=int, default=0, help="epoch to start training from")
 parser.add_argument("--n_epochs", type=int, default=200, help="number of epochs of training")
 parser.add_argument("--dataset_name", type=str, default="ClothCoParse", help="name of the dataset")
@@ -40,11 +40,16 @@ parser.add_argument("--img_width", type= int, default=256, help="size of image w
 parser.add_argument("--channels", type=int, default=3, help="number of image channels")
 parser.add_argument("--sample_interval", type=int, default=100, help="interval between sampling of images from generators")
 parser.add_argument("--checkpoint_interval", type=int, default=10, help="interval between model checkpoints")
-parser.add_argument("--HPC_run", type=bool, choices=('True','False'), help="set to true if running on HPC: default is None which reads to False")
-parser.add_argument("--Convert_B2_mask", choices=('True','False'), help="convert the annotation to a binary mask: default is None which reads to False")
-parser.add_argument("--redirect_std_to_file", choices=('True','False'), help="set all console output to file: default is None which reads to False")
+parser.add_argument("--HPC_run", type=int, default=0, help="if 1, sets to true if running on HPC: default is 0 which reads to False")
+parser.add_argument("--Convert_B2_mask", type=int, default=0, help="convert the annotation to a binary mask: default is 0 which reads to False")
+parser.add_argument("--redirect_std_to_file", type =int, default=0, help="set all console output to file: default is 0 which reads to False")
+
 
 opt = parser.parse_args()
+# these args are 0s, so, let's convert them to bool (bool does not work directly on parser!)
+opt.Convert_B2_mask= bool(opt.Convert_B2_mask)
+opt.HPC_run=bool(opt.HPC_run)
+redirect_std_to_file = bool(opt.redirect_std_to_file)
 
 if platform.system()=='Windows':
     opt.n_cpu=0
@@ -124,7 +129,7 @@ dataloader = DataLoader(
  
 )
 
-
+# aa= x_data[0]['A']
 
 '''test is same as train for now'''
 val_dataloader = DataLoader(
