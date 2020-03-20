@@ -41,15 +41,15 @@ parser.add_argument("--channels", type=int, default=3, help="number of image cha
 parser.add_argument("--sample_interval", type=int, default=100, help="interval between sampling of images from generators")
 parser.add_argument("--checkpoint_interval", type=int, default=10, help="interval between model checkpoints")
 parser.add_argument("--HPC_run", type=bool, default=False, help="set to true if running on HPC")
-parser.add_argument("--Convert_B2_mask", type=bool, default=False, help="set to convert the annotation to a mask")
-parser.add_argument("--redirect_std_to_file", type=bool, default=False, help="set all console output to file")
-
+parser.add_argument("--Convert_B2_mask", choices=('True','False'), help="convert the annotation to a binary mask")
+parser.add_argument("--redirect_std_to_file", choices=('True','False'), help="set all console output to file")
 
 opt = parser.parse_args()
 
 if platform.system()=='Windows':
     opt.n_cpu=0
 
+print('ja ja ja', opt.Convert_B2_mask)
 
 dt = datetime.datetime.today()
 opt.experiment_name = opt.dataset_name+"-pix2pix-"+calendar.month_abbr[dt.month]+"-"+str(dt.day)+'-at-'+str(dt.hour) +'-'+str(dt.minute)
