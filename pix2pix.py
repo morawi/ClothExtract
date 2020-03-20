@@ -35,8 +35,8 @@ parser.add_argument("--b1", type=float, default=0.5, help="adam: decay of first 
 parser.add_argument("--b2", type=float, default=0.999, help="adam: decay of first order momentum of gradient")
 parser.add_argument("--decay_epoch", type=int, default=100, help="epoch from which to start lr decay")
 parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation")
-parser.add_argument("--img_height", type=int, default=512, help="size of image height")
-parser.add_argument("--img_width", type= int, default=512, help="size of image width")
+parser.add_argument("--img_height", type=int, default=256, help="size of image height")
+parser.add_argument("--img_width", type= int, default=256, help="size of image width")
 parser.add_argument("--channels", type=int, default=3, help="number of image channels")
 parser.add_argument("--sample_interval", type=int, default=100, help="interval between sampling of images from generators")
 parser.add_argument("--checkpoint_interval", type=int, default=10, help="interval between model checkpoints")
@@ -109,9 +109,12 @@ transforms_ = [
 
 # Image transformations
 
-x_data= ImageDataset("../data/%s" % opt.dataset_name, transforms_=transforms_, mode="train", unaligned=False, 
-                 HPC_run=opt.HPC_run, Convert_B2_mask = opt.Convert_B2_mask)
-aa = x_data[0]
+x_data= ImageDataset("../data/%s" % opt.dataset_name, transforms_=transforms_, 
+                     mode="train", 
+                     unaligned=False, 
+                     HPC_run=opt.HPC_run, 
+                     Convert_B2_mask = opt.Convert_B2_mask
+                 )
 
 dataloader = DataLoader(
     x_data,
@@ -125,8 +128,11 @@ dataloader = DataLoader(
 
 '''test is same as train for now'''
 val_dataloader = DataLoader(
-    ImageDataset("../data/%s" % opt.dataset_name, transforms_=transforms_, mode="train", unaligned=False, 
-                 HPC_run=opt.HPC_run, Convert_B2_mask = opt.Convert_B2_mask),
+    ImageDataset("../data/%s" % opt.dataset_name, transforms_=transforms_, 
+                 mode="train", 
+                 unaligned=False, 
+                 HPC_run=opt.HPC_run, 
+                 Convert_B2_mask = opt.Convert_B2_mask),
     batch_size=5,
     shuffle=True,
     num_workers=0,
@@ -160,8 +166,8 @@ for epoch in range(opt.epoch, opt.n_epochs):
         # real_B = Variable(batch["A"].type(Tensor))
         
         # Changed by Rawi .... Input is A to produce B, the mask
-        real_A = Variable(batch["B"].type(Tensor))
-        real_B = Variable(batch["A"].type(Tensor))
+        real_A = Variable(batch["A"].type(Tensor))
+        real_B = Variable(batch["B"].type(Tensor))
         
        
 
