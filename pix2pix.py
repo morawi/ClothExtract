@@ -40,9 +40,9 @@ parser.add_argument("--img_width", type= int, default=256, help="size of image w
 parser.add_argument("--channels", type=int, default=3, help="number of image channels")
 parser.add_argument("--sample_interval", type=int, default=100, help="interval between sampling of images from generators")
 parser.add_argument("--checkpoint_interval", type=int, default=10, help="interval between model checkpoints")
-parser.add_argument("--HPC_run", type=bool, default=False, help="set to true if running on HPC")
-parser.add_argument("--Convert_B2_mask", choices=('True','False'), help="convert the annotation to a binary mask")
-parser.add_argument("--redirect_std_to_file", choices=('True','False'), help="set all console output to file")
+parser.add_argument("--HPC_run", type=bool, choices=('True','False'), help="set to true if running on HPC: default is None which reads to False")
+parser.add_argument("--Convert_B2_mask", choices=('True','False'), help="convert the annotation to a binary mask: default is None which reads to False")
+parser.add_argument("--redirect_std_to_file", choices=('True','False'), help="set all console output to file: default is None which reads to False")
 
 opt = parser.parse_args()
 
