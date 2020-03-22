@@ -4,7 +4,7 @@ import os
 import scipy.io as sio
 
 from torch.utils.data import Dataset # Dataset class from PyTorch
-from PIL import Image # PIL is a nice Python Image Library that we can use to handle images
+from PIL import Image, ImageChops # PIL is a nice Python Image Library that we can use to handle images
 import torchvision.transforms as transforms # torch transform used for computer vision applications
 
 import matplotlib.pyplot as plt
@@ -23,8 +23,8 @@ def to_rgb(image):
 
 
 class ImageDataset(Dataset):
-    def __init__(self, root, transforms_=None, unaligned=False, mode="train",
-                 Convert_B2_mask=False, HPC_run=True):
+    def __init__(self, root, transforms_=None, unaligned=False, mode="train", 
+                 Convert_B2_mask=False, HPC_run=False):
         # mode "train" during learning / training and "test" during testing
         # we will have two folders; one called train and the other test; hence, we load the images according to whay we are doing (train or test?)
         # root is the path to the folder that contains the data
@@ -44,6 +44,9 @@ class ImageDataset(Dataset):
         self.files_A = sorted(glob.glob(os.path.join(root, "%s/A" % mode) + "/*.*")) # get the source image file-names
         self.files_B = sorted(glob.glob(os.path.join(root, "%s/B" % mode) + "/*.*")) # get the target image file-names
         
+        
+        self.remove_background = True # we'll have to add it as an argument later
+        
 
     def __getitem__(self, index):
         image_A = Image.open(self.files_A[index % len(self.files_A)]) # read the image, according to the file name, index select which image to read; index=1 means get the first image in the list self.files_A
@@ -62,6 +65,11 @@ class ImageDataset(Dataset):
             image_A = to_rgb(image_A)
         if image_B.mode != "RGB":
             image_B = to_rgb(image_B)
+        
+        if self.remove_background:   
+            
+            mask = image_B.point(lambda p: 255 if p > 0  else 0 )            
+            image_A = ImageChops.multiply(image_A, mask)
         if self.transform !=None:
             image_A = self.transform(image_A) # here we apply the transform on the source
             image_B = self.transform(image_B) # apply the transform on the target (in our case, the target is the pixel-wise annotation that marks the garments)
@@ -75,17 +83,26 @@ class ImageDataset(Dataset):
 inside data folder there is train_folder 
 should have two sub-folders, A (contains the images) and B (containes the annotations) '''
 
+# transforms_ = [
+#     transforms.Resize((300, 300), Image.BICUBIC),
+#     transforms.ToTensor(),
+#     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+# ]
+
+
 x_data = ImageDataset("../data/%s" % "ClothCoParse",  
-                           transforms_='',                            
-                           unaligned=False, 
-                           mode = "train",                           
-                           )
+                            transforms_= '', #transforms_,                            
+                            unaligned=False, 
+                            mode = "train",   
+                            HPC_run = False,
+                            Convert_B2_mask = True
+                            )
 
-# x_data[0]  #accessing the first element in the data, should have the first image and its corresponding pixel-levele annotation
-# img = x_data[0]['A']  # getting the image
-# anno = x_data[0]['B']  # getting the annotation
+x_data[0]  #accessing the first element in the data, should have the first image and its corresponding pixel-levele annotation
+img = x_data[0]['A']  # getting the image
+anno = x_data[0]['B']  # getting the annotation
 
 
-# plt.imshow(anno.convert('L'),  cmap= plt.cm.get_cmap("gist_stern"), vmin=0, vmax=255)
+plt.imshow(anno.convert('L'),  cmap= plt.cm.get_cmap("gist_stern"), vmin=0, vmax=255)
 
 
