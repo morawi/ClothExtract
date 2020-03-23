@@ -83,8 +83,8 @@ lambda_pixel = 100
 patch = (1, opt.img_height // 2 ** 4, opt.img_width // 2 ** 4)
 
 # Initialize generator and discriminator
-generator = GeneratorUNet()
-discriminator = Discriminator()
+generator = GeneratorUNet(out_channels=opt.channels)
+discriminator = Discriminator(in_channels=opt.channels)
 
 if cuda:
     generator = generator.cuda()
