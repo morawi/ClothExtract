@@ -118,7 +118,8 @@ x_data= ImageDataset("../data/%s" % opt.dataset_name, transforms_=transforms_,
                      mode="train", 
                      unaligned=False, 
                      HPC_run=opt.HPC_run, 
-                     Convert_B2_mask = opt.Convert_B2_mask
+                     Convert_B2_mask = opt.Convert_B2_mask,
+                     channels=opt.channels
                  )
 
 dataloader = DataLoader(
@@ -126,6 +127,7 @@ dataloader = DataLoader(
     batch_size=opt.batch_size,
     shuffle=True,
     num_workers = opt.n_cpu,
+    channels=opt.channels
  
 )
 
