@@ -23,8 +23,10 @@ def to_rgb(image):
 
 
 class ImageDataset(Dataset):
-    def __init__(self, root, transforms_=None, unaligned=False, mode="train", 
-                 Convert_B2_mask=False, HPC_run=False, channels=1, remove_background=True):
+    def __init__(self, root, transforms_A=None, transforms_B=None,
+                 unaligned=False, mode="train", 
+                 Convert_B2_mask=False, HPC_run=False, 
+                 channels=3, remove_background=True):
         # mode "train" during learning / training and "test" during testing
         # we will have two folders; one called train and the other test; hence, we load the images according to whay we are doing (train or test?)
         # root is the path to the folder that contains the data
@@ -37,10 +39,13 @@ class ImageDataset(Dataset):
         self.channels = channels
         self.remove_background = remove_background # we'll have to add it as an argument later
         
-        if transforms_ != None:
-            self.transform = transforms.Compose(transforms_) # image transform
-        else:
-            self.transform=None            
+        if transforms_A != None:
+            self.transform_A = transforms.Compose(transforms_A) # image transform
+        else: self.transform_A = None # image transform        
+        if transforms_B != None:
+            self.transform_B = transforms.Compose(transforms_B) # image transform
+        else: self.transform_B = None # image transform
+        
         
         if HPC_run:
             root = '/home/malrawi/MyPrograms/Data/ClothCoParse'
@@ -72,13 +77,15 @@ class ImageDataset(Dataset):
             mask = image_B.point(lambda p: 255 if p > 0  else 0 )            
             image_A = ImageChops.multiply(image_A, to_rgb(mask))
             
-        if self.channels==1 and image_B.mode != "RGB":
+        if self.channels==3 and image_B.mode != "RGB":
             image_B = to_rgb(image_B)
         
         
-        if self.transform !=None:
-            image_A = self.transform(image_A) # here we apply the transform on the source
-            image_B = self.transform(image_B) # apply the transform on the target (in our case, the target is the pixel-wise annotation that marks the garments)
+        if self.transform_A !=None:
+            image_A = self.transform_A(image_A) # here we apply the transform on the source
+        if self.transform_B !=None:         
+            image_B = self.transform_B(image_B) # apply the transform on the target (in our case, the target is the pixel-wise annotation that marks the garments)
+        
         return {"A": image_A, "B": image_B} # we are returning both the source and the target
 
     def __len__(self): # this function returns the length of the dataset, the source might not equal the target if the data is unaligned

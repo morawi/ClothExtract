@@ -37,7 +37,9 @@ parser.add_argument("--decay_epoch", type=int, default=100, help="epoch from whi
 parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation")
 parser.add_argument("--img_height", type=int, default=256, help="size of image height")
 parser.add_argument("--img_width", type= int, default=256, help="size of image width")
+
 parser.add_argument("--channels", type=int, default=3, help="number of image channels")
+
 parser.add_argument("--sample_interval", type=int, default=100, help="interval between sampling of images from generators")
 parser.add_argument("--checkpoint_interval", type=int, default=10, help="interval between model checkpoints")
 parser.add_argument("--HPC_run", type=int, default=0, help="if 1, sets to true if running on HPC: default is 0 which reads to False")
@@ -52,7 +54,7 @@ opt.HPC_run=bool(opt.HPC_run)
 redirect_std_to_file = bool(opt.redirect_std_to_file)
 
 if platform.system()=='Windows':
-    opt.n_cpu=0
+    opt.n_cpu= 0
 
 print('ja ja ja', opt.Convert_B2_mask)
 
@@ -84,7 +86,7 @@ patch = (1, opt.img_height // 2 ** 4, opt.img_width // 2 ** 4)
 
 # Initialize generator and discriminator
 generator = GeneratorUNet(out_channels=opt.channels)
-discriminator = Discriminator(in_channels=opt.channels)
+discriminator = Discriminator(in_channels=3) # should always be 3, if input (A) has 3 channels
 
 if cuda:
     generator = generator.cuda()
@@ -106,15 +108,25 @@ optimizer_G = torch.optim.Adam(generator.parameters(), lr=opt.lr, betas=(opt.b1,
 optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2))
 
 # Configure dataloaders
-transforms_ = [
+transforms_A = [
     transforms.Resize((opt.img_height, opt.img_width), Image.BICUBIC),
     transforms.ToTensor(),
-    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+    transforms.Normalize( (.5, )*3, (.5, )*3),
 ]
+
+transforms_B = [
+    transforms.Resize((opt.img_height, opt.img_width), Image.BICUBIC),
+    transforms.ToTensor(),
+    transforms.Normalize( (.5, ) *3, (.5, ) *3) if opt.channels==3 else 
+                        transforms.Normalize((.5, ) *1, (.5, ) *1)
+    ,
+]
+
 
 # Image transformations
 
-x_data= ImageDataset("../data/%s" % opt.dataset_name, transforms_=transforms_, 
+x_data= ImageDataset("../data/%s" % opt.dataset_name, 
+                     transforms_A=transforms_A, transforms_B=transforms_B,
                      mode="train", 
                      unaligned=False, 
                      HPC_run=opt.HPC_run, 
@@ -126,23 +138,25 @@ dataloader = DataLoader(
     x_data,
     batch_size=opt.batch_size,
     shuffle=True,
-    num_workers = opt.n_cpu,
-    channels=opt.channels
+    num_workers = opt.n_cpu,  
  
 )
 
-# aa= x_data[0]['A']
+#  aa= x_data[0]['A']  # uncomment only to use for debuging
 
 '''test is same as train for now'''
 val_dataloader = DataLoader(
-    ImageDataset("../data/%s" % opt.dataset_name, transforms_=transforms_, 
+    ImageDataset("../data/%s" % opt.dataset_name, transforms_A=transforms_A, 
+                 transforms_B=transforms_B, 
                  mode="train", 
                  unaligned=False, 
                  HPC_run=opt.HPC_run, 
-                 Convert_B2_mask = opt.Convert_B2_mask),
+                 Convert_B2_mask = opt.Convert_B2_mask,
+                 channels=opt.channels),
     batch_size=5,
     shuffle=True,
     num_workers=0,
+    
 )
 
 # Tensor type
@@ -152,10 +166,18 @@ Tensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
 def sample_images(batches_done):
     """Saves a generated sample from the validation set"""
     imgs = next(iter(val_dataloader))
-    real_A = Variable(imgs["B"].type(Tensor))
-    real_B = Variable(imgs["A"].type(Tensor))
+    # real_A = Variable(imgs["B"].type(Tensor))
+    # real_B = Variable(imgs["A"].type(Tensor))
+    real_A = Variable(imgs["A"].type(Tensor))
+    real_B = Variable(imgs["B"].type(Tensor))
     fake_B = generator(real_A)
-    img_sample = torch.cat((real_A.data, fake_B.data, real_B.data), -2)
+    if opt.channels==1:
+        fake_B = torch.cat((fake_B, fake_B, fake_B), 1)
+        real_B = torch.cat((real_B, real_B, real_B), 1)
+        img_sample = torch.cat((real_A.data, fake_B.data, real_B.data), -2)
+    else:
+        img_sample = torch.cat((real_A.data, fake_B.data, real_B.data), -2)
+        
     save_image(img_sample, "images/%s/%s.png" % (opt.experiment_name, batches_done), nrow=5, normalize=True)
 
 
@@ -190,7 +212,11 @@ for epoch in range(opt.epoch, opt.n_epochs):
 
         # GAN loss
         fake_B = generator(real_A)
-        pred_fake = discriminator(fake_B, real_A)
+        if opt.channels==1:
+            pred_fake = discriminator(torch.cat((fake_B, fake_B, fake_B), 1), real_A)            
+        else:
+            pred_fake = discriminator(fake_B, real_A)
+            
         loss_GAN = criterion_GAN(pred_fake, valid)
         # Pixel-wise loss
         loss_pixel = criterion_pixelwise(fake_B, real_B)
@@ -209,11 +235,19 @@ for epoch in range(opt.epoch, opt.n_epochs):
         optimizer_D.zero_grad()
 
         # Real loss
-        pred_real = discriminator(real_B, real_A)
+        if opt.channels==1:            
+            pred_real = discriminator(torch.cat((real_B, real_B, real_B), 1), real_A)
+        else:
+            pred_real = discriminator(real_B, real_A)
+            
         loss_real = criterion_GAN(pred_real, valid)
 
         # Fake loss
-        pred_fake = discriminator(fake_B.detach(), real_A)
+        if opt.channels==1:                  
+            pred_fake = discriminator(torch.cat((fake_B, fake_B, fake_B), 1).detach(), real_A)
+        else:
+            pred_fake = discriminator(fake_B.detach(), real_A)
+            
         loss_fake = criterion_GAN(pred_fake, fake)
 
         # Total loss

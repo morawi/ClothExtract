@@ -30,15 +30,16 @@ def get_GAN_AB_model(folder_model, model_name, device):
     return G_AB
 
 
-
+in_shape = (512, 256)
 transforms_used = transforms.Compose( 
-    [ transforms.Resize((512, 512), Image.BICUBIC),
+    [ transforms.Resize(in_shape, Image.BICUBIC),
      transforms.ToTensor(), 
      transforms.Normalize((0.5,0.5,0.5), (.5,.5,.5)) 
                  ] ) 
 
 data_set = ImageDataset("../data/%s" % dataset_name, 
-                     transforms_=None, 
+                     transforms_A=None, 
+                     transforms_B=None, 
                      mode="train", 
                      unaligned=False, 
                      HPC_run=0, 
@@ -54,7 +55,7 @@ G_AB = get_GAN_AB_model(path2model, model_name,  device) # load the model
 
 
 i=0
-while i<5:
+while i<2:
     img_id=torch.randint( len(data_set), (1,)) # getting some image, here index 100
     PIL_A_img = data_set[img_id]['A']
     PIL_B_img = data_set[img_id]['B']

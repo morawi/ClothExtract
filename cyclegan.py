@@ -126,7 +126,15 @@ fake_A_buffer = ReplayBuffer()
 fake_B_buffer = ReplayBuffer()
 
 # Image transformations
-transforms_ = [
+transforms_A = [
+    transforms.Resize(int(opt.img_height * 1.12), Image.BICUBIC),
+    transforms.RandomCrop((opt.img_height, opt.img_width)),
+    transforms.RandomHorizontalFlip(),
+    transforms.ToTensor(),
+    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+]
+
+transforms_B = [
     transforms.Resize(int(opt.img_height * 1.12), Image.BICUBIC),
     transforms.RandomCrop((opt.img_height, opt.img_width)),
     transforms.RandomHorizontalFlip(),
@@ -137,7 +145,9 @@ transforms_ = [
 
 # Training data loader
 dataloader = DataLoader(
-    ImageDataset("../data/%s" % opt.dataset_name, transforms_=transforms_, 
+    ImageDataset("../data/%s" % opt.dataset_name, 
+                 transforms_A=transforms_A, 
+                 transforms_B=transforms_B,                  
                  unaligned=True,
                  HPC_run=opt.HPC_run, 
                  Convert_B2_mask = opt.Convert_B2_mask
@@ -153,7 +163,7 @@ dataloader = DataLoader(
 
 # Test data loader
 val_dataloader = DataLoader(
-    ImageDataset("../data/%s" % opt.dataset_name, transforms_=transforms_, 
+    ImageDataset("../data/%s" % opt.dataset_name, transforms_A=transforms_A, 
                  unaligned=True, mode="train",
                  HPC_run=opt.HPC_run, 
                  Convert_B2_mask = opt.Convert_B2_mask),
