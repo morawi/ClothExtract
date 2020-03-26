@@ -15,22 +15,25 @@ from PIL import Image
 # A is the fashion image
 # B is the pixel-level annotation
 
-model_name = 'generator_200.pth' 
+model_name = 'generator_800.pth' 
 dataset_name = 'ClothCoParse'
 experiment_name = '' # to be added 
-path2model = 'C:/MyPrograms/p2p_model/'
+#path2model = 'C:/MyPrograms/p2p_model/'
+# path2model = 'C:/MyPrograms/t-HPC-results/ClothCoParse-pix2pix-Mar-24-at-2-55/saved_models/'
+path2model = 'C:/MyPrograms/one-channel-ClothCoParse-pix2pix-Mar-24-at-20-26/saved_models/'
+output_channels = 1
 
 print('model used', model_name) 
 
 # loads a saved model
 def get_GAN_AB_model(folder_model, model_name, device):          
-    G_AB = GeneratorUNet()   
+    G_AB = GeneratorUNet(out_channels=output_channels)   
     G_AB.load_state_dict(torch.load(folder_model + model_name,  map_location=device ),  )    
     G_AB.eval()            
     return G_AB
 
 
-in_shape = (512, 256)
+in_shape = (512, 512)
 transforms_used = transforms.Compose( 
     [ transforms.Resize(in_shape, Image.BICUBIC),
      transforms.ToTensor(), 
@@ -43,7 +46,8 @@ data_set = ImageDataset("../data/%s" % dataset_name,
                      mode="train", 
                      unaligned=False, 
                      HPC_run=0, 
-                     Convert_B2_mask = 0
+                     Convert_B2_mask = 0,
+                     channels= output_channels
                  )
 
 cuda = False # this will definetly work on the cpu if it is false
@@ -55,7 +59,7 @@ G_AB = get_GAN_AB_model(path2model, model_name,  device) # load the model
 
 
 i=0
-while i<2:
+while i<5:
     img_id=torch.randint( len(data_set), (1,)) # getting some image, here index 100
     PIL_A_img = data_set[img_id]['A']
     PIL_B_img = data_set[img_id]['B']

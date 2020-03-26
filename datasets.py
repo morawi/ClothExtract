@@ -21,9 +21,9 @@ def to_rgb(image):
 
 
 
-
 class ImageDataset(Dataset):
-    def __init__(self, root, transforms_A=None, transforms_B=None,
+    def __init__(self, root, 
+                 transforms_A=None, transforms_B=None,
                  unaligned=False, mode="train", 
                  Convert_B2_mask=False, HPC_run=False, 
                  channels=3, remove_background=True):
@@ -96,24 +96,24 @@ class ImageDataset(Dataset):
 inside data folder there is train_folder 
 should have two sub-folders, A (contains the images) and B (containes the annotations) '''
 
-# transforms_ = [
-#     transforms.Resize((300, 300), Image.BICUBIC),
-#     transforms.ToTensor(),
-#     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-# ]
+transforms_ = [
+    transforms.Resize((300, 300), Image.BICUBIC),
+    transforms.ToTensor(),
+    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+]
 
 
-# x_data = ImageDataset("../data/%s" % "ClothCoParse",  
-#                             transforms_= '', #transforms_,                            
-#                             unaligned=False, 
-#                             mode = "train",   
-#                             HPC_run = False,
-#                             Convert_B2_mask = True
-#                             )
+x_data = ImageDataset("../data/%s" % "ClothCoParse",  
+                            transforms_A= None, #transforms_,                            
+                            unaligned=False, 
+                            mode = "train",   
+                            HPC_run = False,
+                            Convert_B2_mask = True
+                            )
 
-# x_data[0]  #accessing the first element in the data, should have the first image and its corresponding pixel-levele annotation
-# img = x_data[0]['A']  # getting the image
-# anno = x_data[0]['B']  # getting the annotation
+x_data[0]  #accessing the first element in the data, should have the first image and its corresponding pixel-levele annotation
+img = x_data[0]['A']  # getting the image
+anno = x_data[0]['B']  # getting the annotation
 
 
 # plt.imshow(anno.convert('L'),  cmap= plt.cm.get_cmap("gist_stern"), vmin=0, vmax=255)

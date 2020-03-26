@@ -27,9 +27,8 @@ def get_GAN_AB_model(folder_model, model_name, device):
     n_residual_blocks = 9 # this should be the same values used in training the G_AB model    
     G_AB = GeneratorResNet(input_shape=(3,0), num_residual_blocks = n_residual_blocks)        
     G_AB.load_state_dict(torch.load(folder_model + model_name,  map_location=device ),  )    
-    
-    if cuda: 
-        G_AB = G_AB.to(device)
+    # if cuda: 
+    #     G_AB = G_AB.to(device)
     return G_AB
 
 
@@ -67,8 +66,6 @@ device = torch.device('cuda' if cuda else 'cpu')
 
 G_AB = get_GAN_AB_model(path2model, model_name,  device) # load the model
 G_AB.eval()
-# if not cuda:
-#     G_AB=G_AB.cpu()
 
 if cuda: real_A = real_A.to(device)
 with torch.no_grad():
