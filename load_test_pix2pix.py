@@ -28,7 +28,7 @@ print('model used', model_name)
 # loads a saved model
 def get_GAN_AB_model(folder_model, model_name, device):          
     G_AB = GeneratorUNet(out_channels=output_channels)   
-    G_AB.load_state_dict(torch.load(folder_model + model_name,  map_location=device ),  )    
+    G_AB.load_state_dict(torch.load( folder_model + model_name,  map_location=device ),  )    
     G_AB.eval()            
     return G_AB
 
@@ -84,7 +84,7 @@ while i<5:
 #     to_pil = transforms.ToPILImage() 
 #     img  = to_pil(img.squeeze()) # we can also use test_set[1121][0].numpy()    
 #     if show_img: 
-#         plt.imshow(img.convert('L'),  cmap= plt.cm.get_cmap("nipy_spectral"), vmin=0, vmax=55)
+#         plt.imshow(img.convert('L'),  cmap= plt.cm.get_cmap("nipy_spectral"), vmin=0, vmax=60)
 #         # img.show()        
 #         # img.save('/home/malrawi/GAN_seg_img_414/'+'gg-col'+'.png') # can be used to save the image
     
